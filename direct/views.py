@@ -7,13 +7,12 @@ from django.contrib.auth.views import (
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.signing import BadSignature, SignatureExpired, loads, dumps
 from django.http import HttpResponseBadRequest
-from django.shortcuts import redirect, resolve_url
+from django.shortcuts import redirect, render, resolve_url
 from django.template.loader import render_to_string
 from django.views import generic
 from .forms import (
-    LoginForm, UserCreateForm, #UserUpdateForm
+    LoginForm, UserCreateForm, ProfileForm,#UserUpdateForm
 )
-from django.shortcuts import render
 
 User = get_user_model()
 
@@ -35,16 +34,16 @@ class Logout(LogoutView):
 
 def mypage(request):
     return render(request,"mypage.html")
-    
 
 
+"""    
 class UserCreate(generic.CreateView):
-    """ユーザー仮登録"""
+    # ユーザー仮登録
     template_name = 'user_create.html'
     form_class = UserCreateForm
 
     def form_valid(self, form):
-        """仮登録と本登録用メールの発行."""
+        # 仮登録と本登録用メールの発行
         # 仮登録と本登録の切り替えは、is_active属性を使うと簡単です。
         # 退会処理も、is_activeをFalseにするだけにしておくと捗ります。
         user = form.save(commit=False)
@@ -66,6 +65,29 @@ class UserCreate(generic.CreateView):
 
         user.email_user(subject, message)
         return redirect('direct:user_create_done')
+"""
+
+def user_create(request):
+    user_form = UserCreateForm(request.POST or None)
+    profile_form = ProfileForm(request.POST or None)
+    if request.method == "POST" and user_form.is_valid() and profile_form.is_valid():
+
+        # Userモデルの処理。ログインできるようis_activeをTrueにし保存
+        user = user_form.save(commit=False)
+        user.is_active = True
+        user.save()
+
+        # Profileモデルの処理。↑のUserモデルと紐づけましょう。
+        profile = profile_form.save(commit=False)
+        profile.user = user
+        profile.save()
+        return redirect("direct:top")
+
+    context = {
+        "user_form": user_form,
+        "profile_form": profile_form,
+    }
+    return render(request, 'user_create.html', context)
 
 
 class UserCreateDone(generic.TemplateView):

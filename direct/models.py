@@ -4,6 +4,8 @@ from django.contrib.auth.models import PermissionsMixin, UserManager
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
+from django.core.validators import MinValueValidator,MaxValueValidator
+from django.conf import settings
 
 
 class CustomUserManager(UserManager):
@@ -34,7 +36,7 @@ class CustomUserManager(UserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-class User(AbstractBaseUser, PermissionsMixin):
+class User(AbstractBaseUser, PermissionsMixin): #カスタムユーザー
     """カスタムユーザーモデル."""
 
     email = models.EmailField(_('email address'), unique=True)
@@ -88,3 +90,20 @@ class User(AbstractBaseUser, PermissionsMixin):
         メールアドレスを返す
         """
         return self.email
+
+
+GENDER_CHOICES = (
+    (1, '女性'),
+    (2, '男性'),
+)
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE,related_name="profile") #紐付いたUserが削除されたらuser_infosも削除
+    username = models.CharField("ハンドルネーム",max_length=50,null=False)
+    age = models.IntegerField("年齢",validators=[MinValueValidator(0),MaxValueValidator(150)])
+    sex = models.BooleanField("性別", max_length=2, choices=GENDER_CHOICES, blank=True)
+    
+    def __str__(self):
+        return self.username
+    
+    
