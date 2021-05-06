@@ -38,9 +38,16 @@ class UserCreateForm(UserCreationForm):
         return email
 
 
+#country = CountryField(blank_label='(Select country)',).formfield()
+
 class ProfileForm(forms.ModelForm):
+    """プロフィール登録フォーム"""
     class Meta:
         model = Profile
         fields = (
-            "username", "age", "sex"
+            "username", "age", "sex","country"
         )
+
+        def __init__(self, *args, **kwargs):
+            super(RegisterFormTeacher, self).__init__(*args, **kwargs)
+            self.fields['country'].widget.attrs['placeholder'] = 'Select a Country'

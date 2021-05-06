@@ -72,16 +72,34 @@ def user_create(request):
     profile_form = ProfileForm(request.POST or None)
     if request.method == "POST" and user_form.is_valid() and profile_form.is_valid():
 
-        # Userモデルの処理。ログインできるようis_activeをTrueにし保存
+        #def form_valid(self, form):
+        # 仮登録と本登録用メールの発行
+        # 仮登録と本登録の切り替えは、is_active属性を使うと簡単です。
+        # 退会処理も、is_activeをFalseにするだけにしておくと捗ります。
         user = user_form.save(commit=False)
-        user.is_active = True
+        user.is_active = False
         user.save()
 
         # Profileモデルの処理。↑のUserモデルと紐づけましょう。
         profile = profile_form.save(commit=False)
         profile.user = user
         profile.save()
-        return redirect("direct:top")
+
+        # アクティベーションURLの送付
+        current_site = get_current_site(request)
+        domain = current_site.domain
+        context = {
+            'protocol': request.scheme,
+            'domain': domain,
+            'token': dumps(user.pk),
+            'user': user,
+        }
+
+        subject = render_to_string('mail_template_subject.txt', context)
+        message = render_to_string('mail_template_message.txt', context)
+
+        user.email_user(subject, message)
+        return redirect('direct:user_create_done')
 
     context = {
         "user_form": user_form,

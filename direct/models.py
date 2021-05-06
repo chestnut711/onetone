@@ -6,6 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.core.validators import MinValueValidator,MaxValueValidator
 from django.conf import settings
+from django_countries.fields import CountryField
 
 
 class CustomUserManager(UserManager):
@@ -101,7 +102,8 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,related_name="profile") #紐付いたUserが削除されたらuser_infosも削除
     username = models.CharField("ハンドルネーム",max_length=50,null=False)
     age = models.IntegerField("年齢",validators=[MinValueValidator(0),MaxValueValidator(150)])
-    sex = models.BooleanField("性別", max_length=2, choices=GENDER_CHOICES, blank=True)
+    sex = models.IntegerField("性別", max_length=2, choices=GENDER_CHOICES, blank=True)
+    country = CountryField("国",blank_label='(select country)', null=True, blank = True)
     
     def __str__(self):
         return self.username

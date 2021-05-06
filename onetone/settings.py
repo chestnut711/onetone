@@ -25,7 +25,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "direct.apps.DirectConfig", #変更
+    "direct.apps.DirectConfig", #追加
+    "django_countries", #追加
 ]
 
 MIDDLEWARE = [
